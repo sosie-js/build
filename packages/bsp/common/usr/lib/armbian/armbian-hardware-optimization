@@ -426,6 +426,13 @@ add_usb_storage_quirks() {
 
 } # add_usb_storage_quirks
 
+disable_simpledrm_module() {
+       if [ "X${BOARD}" == "Xbananapim5" ]; then
+	       BLACKLIST_SIMPLEDRM="module_blacklist=simpledrm"
+	       echo "extraargs=${BLACKLIST_SIMPLEDRM}" >> /boot/armbianEnv.txt
+       fi
+} # disable_simpledrm_module only for BananapiM5 board
+
 update_branch_from_installed_kernel() {
 
 	BRANCH=$(dpkg -l | grep -E "linux-image" | grep -E "current|legacy|edge" | awk '{print $2}' | cut -d"-" -f3 | head -1)
@@ -436,6 +443,9 @@ update_branch_from_installed_kernel() {
 	fi
 }
 
+
+
+
 case $1 in
 	*start*)
 		# set optimal disk scheduler settings
@@ -443,7 +453,10 @@ case $1 in
 
 		# hardware preparation
 		prepare_board &
-
+		
+                # do not interfer with the loading of panfrost module inside the drm_shmem_helper module so HW accel is recognized see AR-1641 
+		disable_simpledrm_module &
+		
 		# add usb quirks
 		add_usb_storage_quirks &
 
